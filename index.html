@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gestor de Presupuestos</title>
+  <meta name="description" content="Gestor de Presupuestos: clientes, ítems, contratos, exportación a CSV y vista previa imprimible." />
+
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+  <div class="app-shell" id="appShell">
+    <!-- SIDEBAR (desktop) -->
+    <aside class="sidebar" aria-label="Barra lateral">
+      <div class="sidebar__brand">
+        <div class="brand__logo" id="brandLogoBox" aria-label="Logo">
+          <img id="brandLogo" alt="Logo empresa" />
+          <span id="brandLogoFallback">LOGO</span>
+        </div>
+        <div>
+          <div class="sidebar__title">Gestor</div>
+          <div class="sidebar__subtitle muted">Presupuestos & Contratos</div>
+        </div>
+      </div>
+
+      <nav class="sidebar__nav" aria-label="Navegación">
+        <a class="navitem active" href="#bienvenida" data-view="bienvenida"><i class="bi bi-stars"></i><span>Inicio</span></a>
+        <a class="navitem" href="#presupuesto" data-view="presupuesto"><i class="bi bi-receipt-cutoff"></i><span>Presupuesto</span></a>
+        <a class="navitem" href="#historial" data-view="historial"><i class="bi bi-clock-history"></i><span>Historial</span></a>
+        <a class="navitem" href="#items" data-view="items"><i class="bi bi-box-seam"></i><span>Ítems</span></a>
+        <a class="navitem" href="#clientes" data-view="clientes"><i class="bi bi-people"></i><span>Clientes</span></a>
+        <a class="navitem" href="#contratos" data-view="contratos"><i class="bi bi-file-earmark-text"></i><span>Contratos</span></a>
+
+        <button class="navitem navitem--btn" id="btnOpenConfig" type="button">
+          <i class="bi bi-gear-fill"></i><span>Configuración</span>
+        </button>
+
+        <!-- ✅ Cerrar sesión (desktop sidebar) -->
+        <button class="navitem navitem--btn navitem--danger" id="btnLogout" type="button">
+          <i class="bi bi-box-arrow-right"></i><span>Cerrar sesión</span>
+        </button>
+      </nav>
+
+      <div class="sidebar__foot">
+        <div class="pill"><i class="bi bi-hdd"></i> 100% local</div>
+        <div class="pill"><i class="bi bi-shield-check"></i> Sin servidor</div>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main">
+
+      <!-- APPBAR -->
+      <header class="appbar">
+        <button class="iconbtn" id="btnBurger" type="button" aria-label="Abrir menú" aria-controls="navDrawer" aria-expanded="false">
+          <i class="bi bi-list"></i>
+        </button>
+
+        <div class="appbar__title">
+          <span id="appbarTitle">Inicio</span>
+          <small class="muted" id="appbarSubtitle">Bienvenido</small>
+        </div>
+
+        <div class="appbar__actions">
+          <button class="btn btn--ghost" id="btnQuickPreview" type="button"><i class="bi bi-eye"></i> Vista previa</button>
+          <button class="btn btn--primary" id="btnQuickSave" type="button"><i class="bi bi-save2"></i> Guardar</button>
+
+          <!-- ✅ Cerrar sesión (top bar) -->
+          <button class="btn btn--ghost" id="btnLogoutTop" type="button">
+            <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+          </button>
+        </div>
+      </header>
+
+      <!-- DRAWER (mobile) -->
+      <aside id="navDrawer" class="drawer" aria-hidden="true">
+        <div class="drawer__head">
+          <div class="drawer__title"><i class="bi bi-list"></i> Menú</div>
+          <button class="drawer__close" id="btnDrawerClose" type="button" aria-label="Cerrar menú">×</button>
+        </div>
+
+        <a class="drawer__link active" href="#bienvenida" data-view="bienvenida"><i class="bi bi-stars"></i> Inicio</a>
+        <a class="drawer__link" href="#presupuesto" data-view="presupuesto"><i class="bi bi-receipt-cutoff"></i> Presupuesto</a>
+        <a class="drawer__link" href="#historial" data-view="historial"><i class="bi bi-clock-history"></i> Historial</a>
+        <a class="drawer__link" href="#items" data-view="items"><i class="bi bi-box-seam"></i> Ítems</a>
+        <a class="drawer__link" href="#clientes" data-view="clientes"><i class="bi bi-people"></i> Clientes</a>
+        <a class="drawer__link" href="#contratos" data-view="contratos"><i class="bi bi-file-earmark-text"></i> Contratos</a>
+
+        <button class="drawer__cta" id="btnOpenConfigMobile" type="button"><i class="bi bi-gear-fill"></i> Configuración</button>
+
+        <!-- ✅ Cerrar sesión (mobile drawer) -->
+        <button class="drawer__cta drawer__cta--danger" id="btnLogoutMobile" type="button">
+          <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+        </button>
+      </aside>
+
+      <div id="drawerBackdrop" class="backdrop" aria-hidden="true"></div>
+
+      <!-- CONTENT -->
+      <main class="content" id="appContent">
+
+        <!-- VIEW: BIENVENIDA / DASHBOARD -->
+        <section class="view active" id="view-bienvenida" data-view="bienvenida">
+          <section class="dash-hero">
+            <div class="dash-hero__copy">
+              <div class="kicker"><i class="bi bi-stars"></i> Inicio</div>
+              <h2 class="dash-hero__title">Bienvenido al Gestor de Presupuestos</h2>
+              <p class="dash-hero__text muted">
+                Creá presupuestos, gestioná clientes e ítems, y generá contratos con vista previa imprimible.
+                Todo se guarda en tu navegador y podés respaldarlo con un JSON.
+              </p>
+
+              <div class="dash-hero__actions">
+                <button class="btn btn--primary" data-jump="presupuesto"><i class="bi bi-receipt-cutoff"></i> Nuevo presupuesto</button>
+                <button class="btn btn--ghost" data-jump="clientes"><i class="bi bi-people"></i> Nuevo cliente</button>
+                <button class="btn btn--ghost" data-jump="items"><i class="bi bi-box-seam"></i> Nuevo ítem</button>
+                <button class="btn btn--ghost" id="btnDashConfig" type="button"><i class="bi bi-gear"></i> Configuración</button>
+              </div>
+
+              <div class="dash-hero__meta">
+                <span class="pill"><i class="bi bi-hdd"></i> 100% local</span>
+                <span class="pill"><i class="bi bi-shield-check"></i> Sin servidor</span>
+                <span class="pill"><i class="bi bi-cloud-arrow-down"></i> Backup JSON</span>
+              </div>
+            </div>
+
+            <div class="dash-hero__panel">
+              <div class="dash-stats">
+                <div class="stat">
+                  <div class="stat__icon"><i class="bi bi-people"></i></div>
+                  <div>
+                    <div class="stat__label muted">Clientes</div>
+                    <div class="stat__value" id="statClients">0</div>
+                  </div>
+                </div>
+                <div class="stat">
+                  <div class="stat__icon"><i class="bi bi-box-seam"></i></div>
+                  <div>
+                    <div class="stat__label muted">Ítems</div>
+                    <div class="stat__value" id="statItems">0</div>
+                  </div>
+                </div>
+                <div class="stat">
+                  <div class="stat__icon"><i class="bi bi-clock-history"></i></div>
+                  <div>
+                    <div class="stat__label muted">Presupuestos</div>
+                    <div class="stat__value" id="statBudgets">0</div>
+                  </div>
+                </div>
+                <div class="stat">
+                  <div class="stat__icon"><i class="bi bi-file-earmark-text"></i></div>
+                  <div>
+                    <div class="stat__label muted">Contratos</div>
+                    <div class="stat__value" id="statContracts">0</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="dash-mini">
+                <div class="dash-mini__row">
+                  <div class="dash-mini__label muted">Último respaldo</div>
+                  <div class="dash-mini__value" id="statLastBackup">—</div>
+                </div>
+                <div class="dash-mini__row">
+                  <div class="dash-mini__label muted">Último presupuesto</div>
+                  <div class="dash-mini__value" id="statLastBudget">—</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="grid two" style="margin-top:14px;">
+            <article class="card">
+              <div class="card__header">
+                <h2><i class="bi bi-lightbulb"></i> Guía rápida</h2>
+              </div>
+              <ol class="steps">
+                <li><strong>Configuración</strong>: cargá tus datos de empresa y logo.</li>
+                <li><strong>Ítems</strong>: guardá servicios frecuentes para reutilizar.</li>
+                <li><strong>Presupuesto</strong>: seleccioná cliente, agregá ítems y generá vista previa.</li>
+                <li><strong>Historial</strong>: editá o volvés a ver presupuestos anteriores.</li>
+              </ol>
+            </article>
+
+            <article class="card">
+              <div class="card__header">
+                <h2><i class="bi bi-clock"></i> Actividad reciente</h2>
+              </div>
+              <div class="recent" id="dashRecent">
+                <div class="muted">Cargando…</div>
+              </div>
+              <p class="help" style="margin-top:10px;">Tip: desde aquí podés volver a abrir un presupuesto reciente.</p>
+            </article>
+          </section>
+        </section>
+
+        <!-- VIEW: PRESUPUESTO -->
+        <section class="view" id="view-presupuesto" data-view="presupuesto">
+          <section class="grid two">
+            <article class="card">
+              <div class="card__header">
+                <h2><i class="bi bi-clipboard-check"></i> Datos del Presupuesto</h2>
+              </div>
+              <div class="grid two">
+                <div>
+                  <label class="label">N° Presupuesto</label>
+                  <input class="input" id="budgetNumber" type="text" placeholder="P-0001" />
+                  <p class="help">Se autogenera si lo dejás vacío.</p>
+                </div>
+
+                <div>
+                  <label class="label">Fecha de emisión</label>
+                  <input class="input" id="issueDate" type="date" />
+                </div>
+
+                <div>
+                  <label class="label">Validez (hasta)</label>
+                  <input class="input" id="validUntil" type="date" />
+                </div>
+
+                <div>
+                  <label class="label">Moneda</label>
+                  <select class="input" id="currency">
+                    <option value="PYG">PYG (₲)</option>
+                    <option value="USD">USD ($)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="label">Tipo de cambio (si USD)</label>
+                  <input class="input" id="fxRate" type="text" placeholder="7300" />
+                  <p class="help">Se usa para mostrar equivalente en ₲.</p>
+                </div>
+              </div>
+            </article>
+
+            <article class="card">
+              <div class="card__header">
+                <h2><i class="bi bi-person-badge"></i> Datos del Cliente</h2>
+              </div>
+
+              <div class="grid two">
+                <div class="full">
+                  <div class="row gap" style="align-items:flex-end;flex-wrap:wrap;">
+                    <div style="flex:1;min-width:220px;">
+                      <label class="label">Cliente registrado</label>
+                      <select class="input" id="clientSelect">
+                        <option value="">— Seleccionar —</option>
+                      </select>
+                    </div>
+
+                    <button class="btn btn--ghost" id="btnNewClient" type="button"><i class="bi bi-plus-circle"></i> Nuevo</button>
+                    <button class="btn btn--ghost" id="btnManageClients" type="button"><i class="bi bi-sliders"></i> Gestionar</button>
+                    <button class="btn btn--ghost" id="btnSaveClientQuick" type="button"><i class="bi bi-save2"></i> Guardar</button>
+                  </div>
+
+                  <p class="help">Seleccioná un cliente para autocompletar, o cargá datos y “Guardar”.</p>
+                </div>
+
+                <div class="full">
+                  <label class="label">Razón social / Nombre *</label>
+                  <input class="input" id="clientName" type="text" placeholder="Cliente S.R.L." />
+                  <p class="field-error" data-error-for="clientName"></p>
+                </div>
+
+                <div>
+                  <label class="label">RUC / Documento *</label>
+                  <input class="input" id="clientDoc" type="text" placeholder="80000000-0" />
+                  <p class="field-error" data-error-for="clientDoc"></p>
+                </div>
+
+                <div>
+                  <label class="label">Teléfono</label>
+                  <input class="input" id="clientPhone" type="text" placeholder="(09xx) ..." />
+                </div>
+
+                <div class="full">
+                  <label class="label">Dirección</label>
+                  <input class="input" id="clientAddress" type="text" placeholder="Dirección del cliente" />
+                </div>
+
+                <div class="full">
+                  <label class="label">Email</label>
+                  <input class="input" id="clientEmail" type="email" placeholder="cliente@email.com" />
+                </div>
+              </div>
+            </article>
+          </section>
+
+          <!-- Ítems / Conceptos -->
+          <section class="card">
+            <div class="card__header" style="flex-wrap:wrap;">
+              <h2><i class="bi bi-bag-check"></i> Ítems / Conceptos</h2>
+              <div class="row gap" style="flex-wrap:wrap; justify-content:flex-end;">
+                <button class="btn btn--ghost" id="btnExportBudgets" type="button"><i class="bi bi-filetype-csv"></i> Exportar Presupuestos</button>
+              </div>
+            </div>
+
+            <div class="grid two">
+              <div class="full">
+                <div class="row gap" style="flex-wrap:wrap; align-items:flex-end;">
+                  <div style="flex:1; min-width:240px;">
+                    <label class="label"><i class="bi bi-box-seam"></i> Ítem guardado</label>
+                    <select class="input" id="catalogSelect">
+                      <option value="">— Seleccionar ítem —</option>
+                    </select>
+                  </div>
+
+                  <button class="btn btn--primary" id="btnAddCatalogItem" type="button"><i class="bi bi-plus-lg"></i> Agregar</button>
+
+                  <div style="flex:1; min-width:240px;">
+                    <label class="label"><i class="bi bi-lightning-charge"></i> Plantillas</label>
+                    <select class="input" id="templateSelect">
+                      <option value="">— Seleccionar plantilla —</option>
+                      <option value="contabilidad">Servicios Contables</option>
+                      <option value="web">Desarrollo Web</option>
+                      <option value="fiscal">Asesoría Fiscal</option>
+                    </select>
+                  </div>
+
+                  <button class="btn btn--ghost" id="btnApplyTemplate" type="button"><i class="bi bi-magic"></i> Aplicar</button>
+                </div>
+
+                <p class="help" style="margin-top:8px;">
+                  Tip: Usá “Ítem guardado” para cargar rápido. Si necesitás una base, aplicá una plantilla.
+                </p>
+              </div>
+            </div>
+
+            <div class="row gap" style="flex-wrap:wrap; justify-content:flex-end; margin-top:8px;">
+              <button class="btn btn--ghost" id="btnAddRow" type="button"><i class="bi bi-plus-square"></i> Añadir ítem</button>
+              <button class="btn btn--ghost" id="btnClearItems" type="button"><i class="bi bi-eraser"></i> Limpiar</button>
+            </div>
+
+            <div class="table-wrap" style="margin-top:10px;">
+              <table class="table" id="itemsTable">
+                <thead>
+                  <tr>
+                    <th style="width: 30%">Descripción</th>
+                    <th style="width: 10%">Cant.</th>
+                    <th style="width: 14%">Precio Unit.</th>
+                    <th style="width: 10%">IVA</th>
+                    <th style="width: 12%">Desc. %</th>
+                    <th style="width: 12%">Desc. Monto</th>
+                    <th style="width: 12%">Total ítem</th>
+                    <th style="width: 6%"></th>
+                  </tr>
+                </thead>
+                <tbody id="itemsBody"></tbody>
+              </table>
+            </div>
+
+            <div class="totals">
+              <div class="totals__box">
+                <div class="totals__row">
+                  <span class="muted">Subtotal</span>
+                  <strong id="subTotal">₲ 0</strong>
+                </div>
+
+                <div class="totals__row">
+                  <span class="muted">Total descuentos</span>
+                  <strong id="totalDiscount">₲ 0</strong>
+                </div>
+
+                <div class="grid two" style="margin-top:12px;">
+                  <div>
+                    <label class="label">Descuento global %</label>
+                    <input class="input" id="globalDiscPct" type="text" placeholder="0,00" />
+                  </div>
+
+                  <div>
+                    <label class="label">Descuento global (monto)</label>
+                    <input class="input" id="globalDiscAmt" type="text" placeholder="0" />
+                  </div>
+                </div>
+
+                <div class="grid two" style="margin-top:12px;">
+                  <div>
+                    <label class="label">IVA 5%</label>
+                    <input class="input" id="vat5" type="text" disabled />
+                  </div>
+
+                  <div>
+                    <label class="label">IVA 10%</label>
+                    <input class="input" id="vat10" type="text" disabled />
+                  </div>
+                </div>
+
+                <div class="totals__divider"></div>
+
+                <div class="totals__row totals__row--big">
+                  <span>Total final</span>
+                  <strong id="grandTotal">₲ 0</strong>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid two">
+              <div class="full">
+                <label class="label">Conclusión del Servicio / Observaciones</label>
+                <textarea class="input textarea" id="notes" rows="4" placeholder="Ej: Validez 10 días. Pago contado/transferencia. Entrega en 48h..."></textarea>
+              </div>
+
+              <div>
+                <label class="label">Firma (Nombre del firmante)</label>
+                <input class="input" id="signName" type="text" placeholder="Ej: Emmanuel Aguero" />
+              </div>
+
+              <div>
+                <label class="label">Aclaración / Cargo</label>
+                <input class="input" id="signRole" type="text" placeholder="Ej: Representante / Asesor" />
+              </div>
+            </div>
+
+            <div class="row end gap" style="flex-wrap:wrap;">
+              <button class="btn btn--ghost" id="btnSaveDraft" type="button"><i class="bi bi-cloud-arrow-down"></i> Guardar borrador</button>
+              <button class="btn btn--primary" id="btnSaveBudget" type="button"><i class="bi bi-save2"></i> Guardar presupuesto</button>
+              <button class="btn btn--ghost" id="btnSendWhatsApp" type="button"><i class="bi bi-whatsapp"></i> WhatsApp</button>
+              <button class="btn btn--primary" id="btnPreview" type="button"><i class="bi bi-eye"></i> Vista previa</button>
+            </div>
+          </section>
+        </section>
+
+        <!-- VIEW: HISTORIAL -->
+        <section class="view" id="view-historial" data-view="historial">
+          <section class="card">
+            <div class="card__header">
+              <h2><i class="bi bi-clock-history"></i> Historial de Presupuestos</h2>
+              <div class="row gap" style="flex-wrap:wrap;">
+                <input class="input" id="budgetsSearch" type="text" placeholder="Buscar por N°, cliente..." style="width:280px;" />
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table class="table" style="min-width:900px;">
+                <thead>
+                  <tr>
+                    <th>N°</th>
+                    <th>Fecha</th>
+                    <th>Cliente</th>
+                    <th>Total</th>
+                    <th style="width:260px;"></th>
+                  </tr>
+                </thead>
+                <tbody id="budgetsBody"></tbody>
+              </table>
+            </div>
+
+            <p class="help" style="margin-top:10px;">Tip: cada registro tiene Vista, Editar y Eliminar.</p>
+          </section>
+        </section>
+
+        <!-- VIEW: ÍTEMS -->
+        <section class="view" id="view-items" data-view="items">
+          <article class="card">
+            <div class="card__header">
+              <h2><i class="bi bi-box-seam"></i> Alta de Ítems (Catálogo)</h2>
+              <div class="row gap" style="flex-wrap:wrap;">
+                <button class="btn btn--ghost" id="btnExportItems" type="button"><i class="bi bi-filetype-csv"></i> Exportar Ítems</button>
+              </div>
+            </div>
+
+            <div class="grid two">
+              <div class="full">
+                <label class="label">Descripción *</label>
+                <input class="input" id="itemDesc" type="text" placeholder="Ej: Asesoría fiscal mensual" />
+                <p class="field-error" data-error-for="itemDesc"></p>
+              </div>
+
+              <div>
+                <label class="label">Precio Unitario *</label>
+                <input class="input" id="itemPrice" type="text" placeholder="0" />
+                <p class="help">El valor se interpreta según la moneda del presupuesto (PYG/USD).</p>
+              </div>
+
+              <div>
+                <label class="label">IVA</label>
+                <select class="input" id="itemVat">
+                  <option value="EXE">Exento</option>
+                  <option value="5">5%</option>
+                  <option value="10" selected>10%</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="label">Unidad / Notas (opcional)</label>
+                <input class="input" id="itemUnit" type="text" placeholder="Ej: Mensual / Servicio" />
+              </div>
+
+              <div class="row end gap full">
+                <button class="btn btn--primary" id="btnSaveItem" type="button"><i class="bi bi-save2"></i> Guardar Ítem</button>
+                <button class="btn btn--ghost" id="btnClearItemForm" type="button"><i class="bi bi-eraser"></i> Limpiar</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card__header">
+              <h2><i class="bi bi-list-check"></i> Ítems registrados</h2>
+              <input class="input" id="itemsSearch" type="text" placeholder="Buscar ítem..." style="width:280px;" />
+            </div>
+
+            <div class="table-wrap">
+              <table class="table" style="min-width:900px;">
+                <thead>
+                  <tr>
+                    <th>Descripción</th>
+                    <th>Precio</th>
+                    <th>IVA</th>
+                    <th>Unidad</th>
+                    <th style="width:220px;"></th>
+                  </tr>
+                </thead>
+                <tbody id="itemsCatalogBody"></tbody>
+              </table>
+            </div>
+          </article>
+        </section>
+
+        <!-- VIEW: CLIENTES -->
+        <section class="view" id="view-clientes" data-view="clientes">
+          <article class="card">
+            <div class="card__header">
+              <h2><i class="bi bi-people"></i> Alta de Clientes</h2>
+              <div class="row gap" style="flex-wrap:wrap;">
+                <button class="btn btn--ghost" id="btnExportClients" type="button"><i class="bi bi-filetype-csv"></i> Exportar Clientes</button>
+              </div>
+            </div>
+
+            <div class="grid two">
+              <div class="full">
+                <label class="label">Razón social / Nombre *</label>
+                <input class="input" id="clName" type="text" />
+                <p class="field-error" data-error-for="clName"></p>
+              </div>
+
+              <div>
+                <label class="label">RUC / Documento *</label>
+                <input class="input" id="clDoc" type="text" />
+                <p class="field-error" data-error-for="clDoc"></p>
+              </div>
+
+              <div>
+                <label class="label">Teléfono</label>
+                <input class="input" id="clPhone" type="text" />
+              </div>
+
+              <div class="full">
+                <label class="label">Dirección</label>
+                <input class="input" id="clAddress" type="text" />
+              </div>
+
+              <div class="full">
+                <label class="label">Email</label>
+                <input class="input" id="clEmail" type="email" />
+                <p class="field-error" data-error-for="clEmail"></p>
+              </div>
+
+              <div class="row end gap full">
+                <button class="btn btn--primary" id="btnSaveClientPage" type="button"><i class="bi bi-save2"></i> Guardar Cliente</button>
+                <button class="btn btn--ghost" id="btnClearClientPage" type="button"><i class="bi bi-eraser"></i> Limpiar</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card__header">
+              <h2><i class="bi bi-person-lines-fill"></i> Clientes registrados</h2>
+              <input class="input" id="clientsPageSearch" type="text" placeholder="Buscar..." style="width:280px;" />
+            </div>
+
+            <div class="table-wrap">
+              <table class="table" style="min-width:900px;">
+                <thead>
+                  <tr>
+                    <th>Cliente</th>
+                    <th>Documento</th>
+                    <th>Tel</th>
+                    <th>Email</th>
+                    <th style="width:220px;"></th>
+                  </tr>
+                </thead>
+                <tbody id="clientsPageBody"></tbody>
+              </table>
+            </div>
+          </article>
+        </section>
+
+        <!-- VIEW: CONTRATOS -->
+        <section class="view" id="view-contratos" data-view="contratos">
+          <article class="card">
+            <div class="card__header">
+              <h2><i class="bi bi-file-earmark-text"></i> Reporte de Contratos Emitidos</h2>
+              <div class="row gap" style="flex-wrap:wrap;">
+                <button class="btn btn--ghost" id="btnExportContracts" type="button"><i class="bi bi-filetype-csv"></i> Exportar Contratos</button>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table class="table" style="min-width:1100px;">
+                <thead>
+                  <tr>
+                    <th>N° Presupuesto</th>
+                    <th>Fecha emisión</th>
+                    <th>Validez</th>
+                    <th>Moneda</th>
+                    <th>Cliente</th>
+                    <th>Documento</th>
+                    <th>Total final</th>
+                    <th style="width:220px;"></th>
+                  </tr>
+                </thead>
+                <tbody id="contractsBody"></tbody>
+              </table>
+            </div>
+
+            <p class="help" style="margin-top:10px;">Este reporte se completa automáticamente cuando guardás un presupuesto/contrato.</p>
+          </article>
+        </section>
+
+      </main>
+
+      <footer class="footer footer--app">
+        <p class="muted">Hecho para alta de presupuestos • Vista previa e impresión • 100% local</p>
+      </footer>
+
+    </div>
+  </div>
+
+  <!-- ✅ LOGIN OVERLAY (PIN) -->
+  <div class="auth" id="loginOverlay" aria-hidden="true" role="dialog" aria-label="Ingreso con PIN">
+    <div class="auth__panel">
+      <div class="auth__brand">
+        <div class="auth__logo" aria-label="Logo">
+          <img id="authLogo" alt="Logo empresa" />
+          <span id="authLogoFallback">LOGO</span>
+        </div>
+        <div>
+          <div class="auth__title">Gestor de Presupuestos</div>
+          <div class="auth__subtitle">Ingresá tu PIN para continuar</div>
+        </div>
+      </div>
+
+      <div class="auth__headline">Acceso</div>
+      <p class="auth__hint">Este PIN se configura desde <strong>Configuración</strong>.</p>
+
+      <div class="auth__field">
+        <input
+          class="auth__input"
+          id="pinInput"
+          type="password"
+          inputmode="numeric"
+          autocomplete="one-time-code"
+          placeholder="••••"
+        />
+        <button class="auth__toggle" id="btnTogglePin" type="button" aria-label="Mostrar/ocultar PIN">
+          <i class="bi bi-eye"></i>
+        </button>
+      </div>
+
+      <button class="btn btn--primary auth__btn" id="btnLogin" type="button">
+        <i class="bi bi-unlock"></i> Entrar
+      </button>
+
+      <div class="auth__error" id="pinError"></div>
+
+      <div class="auth__foot">
+        Tip: si olvidaste el PIN, restablecelo desde Configuración (si tenés acceso al navegador donde quedó guardado).
+      </div>
+    </div>
+  </div>
+
+  <!-- CONFIG MODAL -->
+  <div class="modal" id="configModal" aria-hidden="true" role="dialog" aria-label="Configuración">
+    <div class="modal__overlay" id="configOverlay"></div>
+    <div class="modal__panel modal__panel--narrow">
+      <div class="modal__header">
+        <h2>Configuración</h2>
+        <div class="row gap">
+          <button class="btn btn--ghost" id="btnCloseConfigModal" type="button">Cerrar</button>
+          <button class="btn btn--primary" id="btnSaveConfigModal" type="button">Guardar</button>
+        </div>
+      </div>
+
+      <div class="modal__content">
+        <form id="configForm" class="grid two" novalidate>
+          <div>
+            <label class="label">Logo (PNG/JPG/SVG)</label>
+            <input class="input" type="file" id="logoInput" accept="image/*" />
+            <p class="help">Se guarda localmente (localStorage).</p>
+          </div>
+
+          <div>
+            <label class="label">Nombre de la empresa *</label>
+            <input class="input" type="text" id="cfgCompanyName" placeholder="Focus Advisers" />
+            <p class="field-error" data-error-for="cfgCompanyName"></p>
+          </div>
+
+          <div>
+            <label class="label">RUC</label>
+            <input class="input" type="text" id="cfgCompanyRuc" placeholder="80000000-0" />
+          </div>
+
+          <div>
+            <label class="label">Dirección</label>
+            <input class="input" type="text" id="cfgCompanyAddress" placeholder="Asunción, Paraguay" />
+          </div>
+
+          <div>
+            <label class="label">Teléfono</label>
+            <input class="input" type="text" id="cfgCompanyPhone" placeholder="(0981) 188 037" />
+          </div>
+
+          <div>
+            <label class="label">Email</label>
+            <input class="input" type="email" id="cfgCompanyEmail" placeholder="contacto@empresa.com" />
+            <p class="field-error" data-error-for="cfgCompanyEmail"></p>
+          </div>
+
+          <div class="full">
+            <label class="label">Leyenda (opcional)</label>
+            <input class="input" type="text" id="cfgCompanyTagline" placeholder="Leyenda / slogan" />
+          </div>
+
+          <div class="full">
+            <label class="label">PIN (opcional)</label>
+            <input class="input" type="password" id="cfgPin" placeholder="••••" autocomplete="new-password" />
+            <p class="help">Si cargás un PIN, el sistema pedirá acceso al abrir.</p>
+          </div>
+
+          <div class="row end gap full">
+            <button class="btn btn--ghost" id="btnResetConfig" type="button">Restablecer</button>
+          </div>
+        </form>
+
+        <hr style="border:none;border-top:1px solid #e6e9ef;margin:14px 0;" />
+
+        <div class="row gap" style="flex-wrap:wrap;justify-content:flex-end;">
+          <button class="btn btn--ghost" id="btnExportJson" type="button">Exportar JSON</button>
+          <button class="btn btn--ghost" id="btnImportJson" type="button">Importar JSON</button>
+          <input type="file" id="importJsonFile" accept="application/json" style="display:none;" />
+        </div>
+
+        <p class="help">Exporta/Importa: configuración, clientes, ítems, presupuestos, contratos y borrador.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLIENT MODAL (Alta/Edición) -->
+  <div class="modal" id="clientModal" aria-hidden="true" role="dialog" aria-label="Alta de Cliente">
+    <div class="modal__overlay" id="clientOverlay"></div>
+    <div class="modal__panel modal__panel--narrow">
+      <div class="modal__header">
+        <h2 id="clientModalTitle">Nuevo cliente</h2>
+        <div class="row gap">
+          <button class="btn btn--ghost" id="btnCloseClientModal" type="button">Cerrar</button>
+          <button class="btn btn--primary" id="btnSaveClientModal" type="button">Guardar</button>
+        </div>
+      </div>
+
+      <div class="modal__content">
+        <form id="clientForm" class="grid two" novalidate>
+          <div class="full">
+            <label class="label">Razón social / Nombre *</label>
+            <input class="input" id="cmName" type="text" />
+            <p class="field-error" data-error-for="cmName"></p>
+          </div>
+
+          <div>
+            <label class="label">RUC / Documento *</label>
+            <input class="input" id="cmDoc" type="text" />
+            <p class="field-error" data-error-for="cmDoc"></p>
+          </div>
+
+          <div>
+            <label class="label">Teléfono</label>
+            <input class="input" id="cmPhone" type="text" />
+          </div>
+
+          <div class="full">
+            <label class="label">Dirección</label>
+            <input class="input" id="cmAddress" type="text" />
+          </div>
+
+          <div class="full">
+            <label class="label">Email</label>
+            <input class="input" id="cmEmail" type="email" />
+            <p class="field-error" data-error-for="cmEmail"></p>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLIENTS MANAGER MODAL -->
+  <div class="modal" id="clientsManagerModal" aria-hidden="true" role="dialog" aria-label="Gestionar clientes">
+    <div class="modal__overlay" id="clientsManagerOverlay"></div>
+    <div class="modal__panel">
+      <div class="modal__header">
+        <h2>Clientes</h2>
+        <div class="row gap">
+          <button class="btn btn--ghost" id="btnCloseClientsManager" type="button">Cerrar</button>
+        </div>
+      </div>
+
+      <div class="modal__content">
+        <div class="row gap" style="flex-wrap:wrap;">
+          <input class="input" id="clientsSearch" type="text" placeholder="Buscar por nombre o documento..." style="flex:1;min-width:240px;" />
+          <button class="btn btn--ghost" id="btnNewClientFromManager" type="button">+ Nuevo</button>
+        </div>
+
+        <div class="table-wrap" style="margin-top:12px;">
+          <table class="table" style="min-width:720px;">
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>Documento</th>
+                <th>Tel</th>
+                <th>Email</th>
+                <th style="width:180px;"></th>
+              </tr>
+            </thead>
+            <tbody id="clientsManagerBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PREVIEW MODAL -->
+  <div class="modal" id="previewModal" aria-hidden="true" role="dialog" aria-label="Vista previa presupuesto">
+    <div class="modal__overlay" id="modalOverlay"></div>
+    <div class="modal__panel">
+      <div class="modal__header">
+        <h2>Vista previa (Contrato)</h2>
+        <div class="row gap">
+          <button class="btn btn--ghost" id="btnClosePreview" type="button">Cerrar</button>
+          <button class="btn btn--primary" id="btnPrint" type="button">Descargar PDF</button>
+        </div>
+      </div>
+      <div class="modal__content" id="printArea"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script src="dashboard.js" defer></script>
+</body>
+</html>
